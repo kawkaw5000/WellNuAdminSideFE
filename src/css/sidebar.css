@@ -42,6 +42,7 @@
   cursor: pointer;
   background-color: #444;
   text-align: center;
+  color: lightgray
 }
 
 .menu-item.active {
