@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiService, type UserStats } from '../services/apiService';
 import './LogsAndReports.css';
 

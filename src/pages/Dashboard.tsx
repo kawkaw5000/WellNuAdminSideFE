@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Logo from '../assets/WellNu Logo 2.svg'
-import UserLogs from './UserLogs'
+//import UserLogs from './UserLogs'
 import LogsAndReports from './LogsAndReports'
 
 export default function Dashboard() {
@@ -126,7 +126,7 @@ export default function Dashboard() {
 
         {/* Content */}
         <div style={{ padding: '20px' }}>
-          {activeTab === 'User logs' && <UserLogs />}
+          {/* {activeTab === 'User logs' && <UserLogs />} */}
           {activeTab === 'Logs & Reports' && <LogsAndReports />}
         </div>
       </div>
