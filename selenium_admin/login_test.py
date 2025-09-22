@@ -1,21 +1,21 @@
-from base_driver import get_driver
-from selenium.webdriver.common.by import By
+from base_driver import get_driver, login
 
-BASE_URL = "http://localhost:5173"  # adjust if different
-
-
-def test_login(username: str = "admin", password: str = "123"):
-    driver = get_driver()
-    try:
-        driver.get(f"{BASE_URL}/")
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-username"]').send_keys(username)
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-password"]').send_keys(password)
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-submit"]').click()
-        # Basic assertion: redirect to dashboard
-        assert '/dashboard' in driver.current_url, 'Did not navigate to dashboard.'
-        print('Login test passed')
-    finally:
-        driver.quit()
+BASE_URL = "http://localhost:5173/"  # Adjust if needed
+USERNAME = "admin"
+PASSWORD = "123"
 
 if __name__ == "__main__":
-    test_login()
+    try:
+        print("Starting Brave browser...")
+        driver = get_driver(headless=False)
+        login(driver, base_url=BASE_URL, username=USERNAME, password=PASSWORD)
+        # Check for successful login
+        if '/dashboard' in driver.current_url:
+            print("TEST PASS: Login successful.")
+        else:
+            print("TEST FAIL: Login unsuccessful. Current URL:", driver.current_url)
+        driver.quit()
+        print("Browser closed.")
+    except Exception as e:
+        print(f"Error: {e}")
+        print("TEST FAIL")

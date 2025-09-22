@@ -1,32 +1,33 @@
-from base_driver import get_driver
+from base_driver import get_driver, login
 from selenium.webdriver.common.by import By
 import time
 
 BASE_URL = "http://localhost:5173"
 
-
 def open_printable_summary():
-    driver = get_driver()
+    driver = get_driver(headless=False)  # Set headless=False to show the browser
     try:
-        # Login
-        driver.get(f"{BASE_URL}/")
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-username"]').send_keys('admin')
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-password"]').send_keys('123')
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-submit"]').click()
-        assert '/dashboard' in driver.current_url, 'Login failed'
+        login(
+            driver,
+            base_url=f"{BASE_URL}/",
+            username="admin",
+            password="123"
+        )
+        if '/dashboard' not in driver.current_url:
+            print('TEST FAIL: Login failed')
+            driver.quit()
+            return
 
         # Navigate to Logs & Reports
         driver.find_element(By.XPATH, "//button[contains(., 'Logs & Reports')]").click()
-
-        # Wait a bit for data fetch
         time.sleep(1.5)
-
-        # Verify charts present via data-testids
         driver.find_element(By.CSS_SELECTOR, '[data-testid="meal-type-bar-wrapper"]')
-
-        # Click print button (opens print dialog - cannot assert content but can ensure it is clickable)
         driver.find_element(By.CSS_SELECTOR, '[data-testid="print-button"]').click()
         print('Opened print dialog for summary report (cannot auto-verify print UI).')
+        print('TEST PASS: Print logs and reports workflow succeeded.')
+    except Exception as e:
+        print(f"Error: {e}")
+        print('TEST FAIL')
     finally:
         driver.quit()
 
