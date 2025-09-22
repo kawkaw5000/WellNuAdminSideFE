@@ -1,4 +1,4 @@
-from base_driver import get_driver
+from base_driver import get_driver, login
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 import time
@@ -8,15 +8,16 @@ BASE_URL = "http://localhost:5173"
 # Provide a user id present in the table
 TARGET_USER_ID = 1
 
-
 def toggle_user_status(user_id: int = TARGET_USER_ID):
-    driver = get_driver()
+    driver = get_driver(headless=False)  # Set headless=False to show the browser
     try:
-        # Login first
-        driver.get(f"{BASE_URL}/")
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-username"]').send_keys('admin')
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-password"]').send_keys('123')
-        driver.find_element(By.CSS_SELECTOR, '[data-testid="login-submit"]').click()
+        # Use shared login function
+        login(
+            driver,
+            base_url=f"{BASE_URL}/",
+            username="admin",
+            password="123"
+        )
         assert '/dashboard' in driver.current_url, 'Login failed'
 
         # Ensure User logs tab active
