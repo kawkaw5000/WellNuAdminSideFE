@@ -66,17 +66,17 @@ export default function UserLogs() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
+      <div style={{ textAlign: 'center', padding: '50px', color: '#666' }} data-testid="users-loading">
         Loading users...
       </div>
     )
   }
 
   return (
-    <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '20px' }}>
+    <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '20px' }} data-testid="user-logs-container">
       {/* Header */}
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: 'bold' }}>
+        <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', fontWeight: 'bold' }} data-testid="users-header">
           Users ({users.length})
         </h2>
         
@@ -88,7 +88,7 @@ export default function UserLogs() {
             borderRadius: '4px',
             marginBottom: '15px',
             border: '1px solid #ffeaa7'
-          }}>
+          }} data-testid="users-error">
             {error}
           </div>
         )}
@@ -98,6 +98,7 @@ export default function UserLogs() {
             type="text"
             placeholder="Search users"
             value={searchTerm}
+            data-testid="user-search-input"
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               width: '100%',
@@ -121,7 +122,7 @@ export default function UserLogs() {
       </div>
 
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+  <table style={{ width: '100%', borderCollapse: 'collapse' }} data-testid="users-table">
           <thead>
             <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
               <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Name</th>
@@ -134,7 +135,7 @@ export default function UserLogs() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+              <tr key={user.id} style={{ borderBottom: '1px solid #dee2e6' }} data-testid={`user-row-${user.id}`}>
                 <td style={{ padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{
@@ -181,6 +182,7 @@ export default function UserLogs() {
                         backgroundColor: user.status === 'Active' ? '#dc3545' : '#28a745',
                         color: 'white'
                       }}
+                      data-testid={`toggle-status-${user.id}`}
                     >
                       {user.status === 'Active' ? 'Deactivate' : 'Activate'}
                     </button>

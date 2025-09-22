@@ -1,0 +1,21 @@
+.dashboard-root { display:flex; min-height:100vh; font-family: Arial, sans-serif; background:#f5f5f5; }
+.dashboard-sidebar { width:270px; background:#4a4a4a; color:#fff; display:flex; flex-direction:column; padding:20px; position:sticky; top:0; height:100vh; box-sizing:border-box; }
+/* Fallback for browsers not supporting sticky */
+@supports not (position: sticky) { .dashboard-sidebar { position:fixed; left:0; top:0; bottom:0; } .dashboard-main { margin-left:270px; } }
+.dashboard-logo-wrapper { text-align:center; margin-bottom:32px; }
+.dashboard-logo { width:120px; height:120px; object-fit:contain; }
+.dashboard-nav { flex:1; display:flex; flex-direction:column; gap:10px; }
+.dashboard-nav-btn { background:transparent; color:#fff; border:none; padding:14px 18px; font-size:15px; cursor:pointer; border-radius:6px; text-align:left; transition:background .2s; }
+.dashboard-nav-btn:hover { background:#3a3a3a; }
+.dashboard-nav-btn.active { background:#333; box-shadow: inset 0 0 0 1px #555; }
+.dashboard-logout-btn { background:#ff5722; color:#fff; border:none; padding:14px 18px; font-size:15px; cursor:pointer; border-radius:6px; margin-top:10px; transition:background .2s; }
+.dashboard-logout-btn:hover { background:#e64a19; }
+.dashboard-main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.dashboard-header { background:#fff; padding:18px 24px; border-bottom:1px solid #ddd; display:flex; align-items:center; gap:15px; position:sticky; top:0; z-index:5; }
+.dashboard-avatar { width:50px; height:50px; border-radius:50%; background:#ff9800; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold; font-size:18px; }
+.dashboard-user-meta { display:flex; flex-direction:column; }
+.dashboard-user-name { font-weight:bold; font-size:18px; color:#333; }
+.dashboard-user-role { color:#666; font-size:14px; }
+.dashboard-content { padding:20px; }
+@media (max-width: 900px) { .dashboard-sidebar { position:fixed; transform:translateX(0); z-index:10; } .dashboard-main { margin-left:270px; } }
+@media print { .dashboard-sidebar { display:none !important; } .dashboard-main { margin-left:0 !important; } }

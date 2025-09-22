@@ -8,10 +8,11 @@
 .logs-reports-content {
   flex: 2;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
+  /* Allow natural height and let page scroll instead of internal scroll causing cut-off */
+  max-height: none;
+  overflow: visible;
 }
 
 .logs-reports-box {
@@ -72,9 +73,13 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-  min-width: 400px;
+  /* Let summary scroll with page to prevent clipped empty space */
+  max-height: none;
+  overflow: visible;
+  min-width: 380px;
+  align-self: flex-start;
+  position: sticky;
+  top: 16px;
 }
 
 .printable-summary h2 {

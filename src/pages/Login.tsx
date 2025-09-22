@@ -78,6 +78,7 @@ export default function Login() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            data-testid="login-username"
             style={{
               padding: "0.8rem",
               border: "1px solid #ccc",
@@ -94,6 +95,7 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            data-testid="login-password"
             style={{
               padding: "0.8rem",
               border: "1px solid #ccc",
@@ -106,6 +108,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
+            data-testid="login-submit"
             style={{
               backgroundColor: loading ? "#ccc" : "#ffb74d",
               border: "none",

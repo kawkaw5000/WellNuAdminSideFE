@@ -97,6 +97,11 @@ class ApiService {
     });
   }
 
+  // Explicit set active/inactive shortcut for Selenium tests
+  async setUserActive(userId: number, active: boolean) {
+    return this.updateUserStatus(userId, active);
+  }
+
   // Get user by ID
   async getUserById(userId: number): Promise<User> {
     return this.request<User>(`/admin/users/${userId}`);
@@ -111,6 +116,34 @@ class ApiService {
   async getFoodLogs() {
     return this.request<{ foodLogs: { id: number; foodName: string; foodCategoryId: number; categoryName: string }[] }>(
       '/admin/food-logs'
+    );
+  }
+
+  // Get all food history (not just active logs)
+  async getFoodHistory() {
+    return this.request<{ foodHistory: { id: number; foodName: string; categoryName: string; dateAdded: string; isActive: boolean; timesLogged: number; lastLogged: string }[] }>(
+      '/admin/food-history'
+    );
+  }
+
+  // Get food category statistics for charts
+  async getFoodCategoryStats() {
+    return this.request<{ categoryStats: { categoryName: string; foodCount: number; totalLogs: number; averageCalories: number }[] }>(
+      '/admin/food-categories/stats'
+    );
+  }
+
+  // Get nutrient trends over time
+  async getNutrientTrends() {
+    return this.request<{ trends: { date: string; avgCalories: number; avgProtein: number; avgFat: number; avgCarbs: number; userCount: number }[] }>(
+      '/admin/nutrient-trends'
+    );
+  }
+
+  // Get user activity over time
+  async getUserActivityTrends() {
+    return this.request<{ activityTrends: { date: string; totalUsers: number; activeUsers: number; newRegistrations: number; dailyLogins: number }[] }>(
+      '/admin/user-activity-trends'
     );
   }
 

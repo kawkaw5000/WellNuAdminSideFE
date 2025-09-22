@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import Logo from '../assets/WellNu Logo 2.svg'
-//import UserLogs from './UserLogs'
+import UserLogs from './UserLogs'
 import LogsAndReports from './LogsAndReports'
+import './Dashboard.css'
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('User logs')
@@ -26,110 +27,55 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', fontFamily: 'Arial, sans-serif' }}>
+    <div className="dashboard-root">
       {/* Left Sidebar */}
-      <div style={{
-        width: '300px',
-        backgroundColor: '#4a4a4a',
-        color: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '20px'
-      }}>
+      <aside className="dashboard-sidebar" data-testid="dashboard-sidebar">
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <img src={Logo} alt='WellNu Logo' style={{ width: '120px', height: '120px', objectFit: 'contain' }} />
+        <div className="dashboard-logo-wrapper">
+          <img src={Logo} alt='WellNu Logo' className="dashboard-logo" />
         </div>
 
         {/* Navigation Buttons */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="dashboard-nav">
           <button
             onClick={() => setActiveTab('User logs')}
-            style={{
-              backgroundColor: activeTab === 'User logs' ? '#333' : 'transparent',
-              color: 'white',
-              border: 'none',
-              padding: '15px 20px',
-              fontSize: '16px',
-              cursor: 'pointer',
-              borderRadius: '5px',
-              textAlign: 'left'
-            }}
+            className={`dashboard-nav-btn ${activeTab === 'User logs' ? 'active' : ''}`}
           >
             User logs
           </button>
           <button
             onClick={() => setActiveTab('Logs & Reports')}
-            style={{
-              backgroundColor: activeTab === 'Logs & Reports' ? '#333' : 'transparent',
-              color: 'white',
-              border: 'none',
-              padding: '15px 20px',
-              fontSize: '16px',
-              cursor: 'pointer',
-              borderRadius: '5px',
-              textAlign: 'left'
-            }}
+            className={`dashboard-nav-btn ${activeTab === 'Logs & Reports' ? 'active' : ''}`}
           >
             Logs & Reports
           </button>
         </div>
 
         {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          style={{
-            backgroundColor: '#ff5722',
-            color: 'white',
-            border: 'none',
-            padding: '15px 20px',
-            fontSize: '16px',
-            cursor: 'pointer',
-            borderRadius: '5px',
-            marginTop: '20px'
-          }}
-        >
+        <button onClick={handleLogout} className="dashboard-logout-btn" data-testid="logout-btn">
           Log out
         </button>
-      </div>
+      </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, backgroundColor: '#f5f5f5' }}>
+      <main className="dashboard-main">
         {/* Header */}
-        <div style={{
-          backgroundColor: 'white',
-          padding: '20px',
-          borderBottom: '1px solid #ddd',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '15px'
-        }}>
-          <div style={{
-            width: '50px',
-            height: '50px',
-            borderRadius: '50%',
-            backgroundColor: '#ff9800',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: '18px'
-          }}>
+        <div className="dashboard-header">
+          <div className="dashboard-avatar">
             {adminUser.name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
           </div>
-          <div>
-            <div style={{ fontWeight: 'bold', fontSize: '18px', color: '#333' }}>{adminUser.name}</div>
-            <div style={{ color: '#666', fontSize: '14px' }}>{adminUser.role}</div>
+          <div className="dashboard-user-meta">
+            <div className="dashboard-user-name">{adminUser.name}</div>
+            <div className="dashboard-user-role">{adminUser.role}</div>
           </div>
         </div>
 
         {/* Content */}
-        <div style={{ padding: '20px' }}>
-          {/* {activeTab === 'User logs' && <UserLogs />} */}
+        <div className="dashboard-content">
+          {activeTab === 'User logs' && <UserLogs />}
           {activeTab === 'Logs & Reports' && <LogsAndReports />}
         </div>
-      </div>
+      </main>
     </div>
   )
 }
