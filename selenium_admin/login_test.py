@@ -7,7 +7,7 @@ PASSWORD = "123"
 if __name__ == "__main__":
     try:
         print("Starting Brave browser...")
-        driver = get_driver(headless=False)
+        driver = get_driver(headless=True)
         login(driver, base_url=BASE_URL, username=USERNAME, password=PASSWORD)
         # Check for successful login
         if '/dashboard' in driver.current_url:

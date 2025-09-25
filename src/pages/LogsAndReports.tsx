@@ -51,6 +51,9 @@ export default function LogsAndReports() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState('');
 
+  // Time period selection state
+  const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly'>('weekly');
+
   useEffect(() => {
     const fetchAllData = async () => {
       // Food logs
@@ -108,6 +111,64 @@ export default function LogsAndReports() {
     fetchAllData();
   }, []);
 
+  // Time period filtering functions
+  const getFilteredFoodLogs = (logs: FoodLog[], _period: 'daily' | 'weekly'): FoodLog[] => {
+    // Note: FoodLog doesn't have date fields, so return all logs for now
+    // You can add date filtering if FoodLog gets timestamp fields in the future
+    return logs;
+  };
+
+  const getFilteredNutrientLogs = (logs: NutrientLog[], period: 'daily' | 'weekly'): NutrientLog[] => {
+    const now = new Date();
+    const cutoffDate = new Date();
+    
+    if (period === 'daily') {
+      // Start from today at 00:00 (beginning of current day)
+      cutoffDate.setHours(0, 0, 0, 0);
+    } else if (period === 'weekly') {
+      // Start from 7 days ago at 00:00
+      cutoffDate.setDate(now.getDate() - 7);
+      cutoffDate.setHours(0, 0, 0, 0);
+    }
+    
+    return logs.filter(log => {
+      const logDate = new Date(log.updatedAt);
+      return logDate >= cutoffDate;
+    });
+  };
+
+  const getFilteredDailyIntakeLogs = (logs: DailyIntakeLog[], period: 'daily' | 'weekly'): DailyIntakeLog[] => {
+    const now = new Date();
+    const cutoffDate = new Date();
+    
+    if (period === 'daily') {
+      // Start from today at 00:00 (beginning of current day)
+      cutoffDate.setHours(0, 0, 0, 0);
+    } else if (period === 'weekly') {
+      // Start from 7 days ago at 00:00
+      cutoffDate.setDate(now.getDate() - 7);
+      cutoffDate.setHours(0, 0, 0, 0);
+    }
+    
+    return logs.filter(log => {
+      const logDate = new Date(log.updatedAt);
+      return logDate >= cutoffDate;
+    });
+  };
+
+  // Get filtered data based on selected time period
+  const filteredFoodLogs = getFilteredFoodLogs(foodLogs, timePeriod);
+  const filteredNutrientLogs = getFilteredNutrientLogs(nutrientLogs, timePeriod);
+  const filteredDailyIntakeLogs = getFilteredDailyIntakeLogs(dailyIntakeLogs, timePeriod);
+
+  const getPeriodLabel = () => {
+    switch (timePeriod) {
+      case 'daily': return 'Today';
+      case 'weekly': return 'Last 7 Days';
+      default: return 'Last 7 Days';
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -115,14 +176,64 @@ export default function LogsAndReports() {
   return (
     <div className="logs-reports-container" data-testid="logs-reports-container">
       <div className="logs-reports-content">
+        {/* Time Period Selector */}
+        <div className="logs-reports-box" data-testid="time-period-selector">
+          <h3>📅 Time Period Selection</h3>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>View Data For:</label>
+            <select 
+              value={timePeriod} 
+              onChange={(e) => setTimePeriod(e.target.value as 'daily' | 'weekly')}
+              style={{ 
+                padding: '8px 12px', 
+                fontSize: '14px', 
+                border: '1px solid #ddd', 
+                borderRadius: '4px',
+                backgroundColor: '#fff',
+                color: '#333'
+              }}
+              data-testid="time-period-select"
+            >
+              <option value="weekly" style={{ color: '#333', backgroundColor: '#fff' }}>Last 7 Days</option>
+              <option value="daily" style={{ color: '#333', backgroundColor: '#fff' }}>Today</option>
+            </select>
+          </div>
+          <div style={{ 
+            padding: '12px', 
+            backgroundColor: '#f8f9fa', 
+            border: '1px solid #e9ecef', 
+            borderRadius: '4px',
+            fontSize: '14px',
+            color: '#495057',
+            lineHeight: '1.4'
+          }}>
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Currently showing:</strong> {getPeriodLabel()} data
+            </div>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '8px',
+              fontSize: '13px',
+              color: '#6c757d'
+            }}>
+              <span>Food Logs: {filteredFoodLogs.length} items</span>
+              <span>•</span>
+              <span>Nutrient Logs: {filteredNutrientLogs.length} entries</span>
+              <span>•</span>
+              <span>Daily Intake: {filteredDailyIntakeLogs.length} records</span>
+            </div>
+          </div>
+        </div>
+
         {/* Food Table now shows table first for immediate visibility, charts below */}
         <div className="logs-reports-box" data-testid="food-logs-section">
           <h3>🍎 Food Table</h3>
           {foodLogsLoading && <div className="loading-text">Loading food logs...</div>}
           {foodLogsError && !foodLogsLoading && <div className="error-text">{foodLogsError}</div>}
           {!foodLogsLoading && !foodLogsError && (
-            foodLogs.length === 0 ? (
-              <div className="no-data-text">No food logs found.</div>
+            filteredFoodLogs.length === 0 ? (
+              <div className="no-data-text">No food logs found for {getPeriodLabel().toLowerCase()}.</div>
             ) : (
               <>
                 <div style={{ overflowX: 'auto', marginBottom: 16 }}>
@@ -135,7 +246,7 @@ export default function LogsAndReports() {
                       </tr>
                     </thead>
                     <tbody>
-                      {foodLogs.map((food) => (
+                      {filteredFoodLogs.map((food) => (
                         <tr key={food.id}>
                           <td>{food.id}</td>
                           <td>{food.foodName}</td>
@@ -152,7 +263,7 @@ export default function LogsAndReports() {
                     <ResponsiveContainer width="100%" height={220}>
                       <PieChart>
                         <Pie
-                          data={Object.values(foodLogs.reduce((acc, food) => {
+                          data={Object.values(filteredFoodLogs.reduce((acc, food) => {
                             acc[food.foodName] = acc[food.foodName] || { foodName: food.foodName, count: 0 };
                             acc[food.foodName].count++;
                             return acc;
@@ -164,7 +275,7 @@ export default function LogsAndReports() {
                           outerRadius={80}
                           label
                         >
-                          {Object.keys(foodLogs.reduce((acc, food) => {
+                          {Object.keys(filteredFoodLogs.reduce((acc, food) => {
                             acc[food.foodName] = true; return acc;
                           }, {} as Record<string, boolean>)).map((name, idx) => (
                             <Cell key={name} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
@@ -181,7 +292,7 @@ export default function LogsAndReports() {
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart
                         data={["Breakfast","Lunch","Dinner"].map(cat => {
-                          const counts = foodLogs.reduce((acc, food) => {
+                          const counts = filteredFoodLogs.reduce((acc, food) => {
                             acc[food.categoryName] = (acc[food.categoryName] || 0) + 1; return acc;
                           }, {} as Record<string, number>);
                           return { categoryName: cat, count: counts[cat] || 0 };
@@ -194,7 +305,7 @@ export default function LogsAndReports() {
                         <Tooltip />
                         <Bar dataKey="count" fill="#3498db">
                           { ["Breakfast","Lunch","Dinner"].map((cat)=>{
-                            const counts = foodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
+                            const counts = filteredFoodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
                             const val = counts[cat] || 0;
                             return <Cell key={cat} fill={val === 0 ? 'rgba(52,152,219,0.15)' : '#3498db'} data-testid={`meal-bar-${cat.toLowerCase()}`} />
                           }) }
@@ -214,8 +325,8 @@ export default function LogsAndReports() {
             <div className="loading-text" data-testid="nutrient-loading">Loading nutrient logs...</div>
           ) : nutrientError ? (
             <div className="error-text" data-testid="nutrient-error">{nutrientError}</div>
-          ) : nutrientLogs.length === 0 ? (
-            <div className="no-data-text" data-testid="nutrient-no-data">No nutrient logs found.</div>
+          ) : filteredNutrientLogs.length === 0 ? (
+            <div className="no-data-text" data-testid="nutrient-no-data">No nutrient logs found for {getPeriodLabel().toLowerCase()}.</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table data-testid="nutrient-logs-table">
@@ -232,7 +343,7 @@ export default function LogsAndReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {nutrientLogs.map((log) => (
+                  {filteredNutrientLogs.map((log) => (
                     <tr key={log.id} data-testid={`nutrient-log-${log.id}`}>
                       <td>{log.id}</td>
                       <td>{log.userId}</td>
@@ -257,8 +368,8 @@ export default function LogsAndReports() {
             <div className="loading-text" data-testid="daily-intake-loading">Loading daily intake logs...</div>
           ) : dailyIntakeError ? (
             <div className="error-text" data-testid="daily-intake-error">{dailyIntakeError}</div>
-          ) : dailyIntakeLogs.length === 0 ? (
-            <div className="no-data-text" data-testid="daily-intake-no-data">No daily intake logs found.</div>
+          ) : filteredDailyIntakeLogs.length === 0 ? (
+            <div className="no-data-text" data-testid="daily-intake-no-data">No daily intake logs found for {getPeriodLabel().toLowerCase()}.</div>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table data-testid="daily-intake-table">
@@ -271,7 +382,7 @@ export default function LogsAndReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dailyIntakeLogs.map((log) => (
+                  {filteredDailyIntakeLogs.map((log) => (
                     <tr key={log.id} data-testid={`daily-intake-log-${log.id}`}>
                       <td>{log.id}</td>
                       <td>{log.userId}</td>
@@ -381,8 +492,8 @@ export default function LogsAndReports() {
 
         {/* Food Table Summary */}
         <div className="summary-section" data-testid="summary-food-table">
-          <h4>🍎 Food Table</h4>
-          {foodLogs.length > 0 ? (
+          <h4>🍎 Food Table ({getPeriodLabel()})</h4>
+          {filteredFoodLogs.length > 0 ? (
             <table className="summary-table">
               <thead>
                 <tr>
@@ -391,42 +502,42 @@ export default function LogsAndReports() {
                 </tr>
               </thead>
               <tbody>
-                {foodLogs.slice(0, 5).map((food) => (
+                {filteredFoodLogs.slice(0, 15).map((food) => (
                   <tr key={food.id}>
                     <td>{food.foodName}</td>
                     <td>{food.categoryName}</td>
                   </tr>
                 ))}
-                {foodLogs.length > 5 && (
+                {filteredFoodLogs.length > 15 && (
                   <tr>
                     <td colSpan={2} style={{ fontStyle: 'italic', textAlign: 'center' }}>
-                      ...and {foodLogs.length - 5} more items
+                      ...and {filteredFoodLogs.length - 15} more items
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           ) : (
-            <p className="no-data-text">No food data available</p>
+            <p className="no-data-text">No food data available for {getPeriodLabel().toLowerCase()}</p>
           )}
-          {foodLogs.length > 0 && (
+          {filteredFoodLogs.length > 0 && (
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 12 }}>
               <div style={{ flex: '1 1 140px', minWidth: 140 }} aria-label="Food items distribution chart" data-testid="summary-food-items-pie">
                 <ResponsiveContainer width="100%" height={150}>
                   <PieChart>
-                    <Pie data={Object.values(foodLogs.reduce((acc, food) => {
+                    <Pie data={Object.values(filteredFoodLogs.reduce((acc, food) => {
                       acc[food.foodName] = acc[food.foodName] || { foodName: food.foodName, count: 0 };
                       acc[food.foodName].count++;
                       return acc;
                     }, {} as Record<string, { foodName: string; count: number }>))} dataKey="count" nameKey="foodName" cx="50%" cy="50%" outerRadius={55}>
-                      {Object.keys(foodLogs.reduce((acc, food) => { acc[food.foodName] = true; return acc; }, {} as Record<string, boolean>)).map((n, idx) => (
+                      {Object.keys(filteredFoodLogs.reduce((acc, food) => { acc[food.foodName] = true; return acc; }, {} as Record<string, boolean>)).map((n, idx) => (
                         <Cell key={n} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
                       ))}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
                 <ul style={{ listStyle:'none', padding:0, margin:'4px 0 0', display:'flex', flexWrap:'wrap', gap:4, fontSize:10 }}>
-                  {Object.keys(foodLogs.reduce((acc, food) => { acc[food.foodName]=true; return acc; }, {} as Record<string, boolean>)).slice(0,6).map((n, idx)=>(
+                  {Object.keys(filteredFoodLogs.reduce((acc, food) => { acc[food.foodName]=true; return acc; }, {} as Record<string, boolean>)).slice(0,6).map((n, idx)=>(
                     <li key={n} style={{ display:'flex', alignItems:'center', gap:4 }}>
                       <span style={{ width:10, height:10, background:CHART_COLORS[idx % CHART_COLORS.length], display:'inline-block', borderRadius:2 }} /> {n}
                     </li>
@@ -436,14 +547,14 @@ export default function LogsAndReports() {
               <div style={{ flex: '1 1 160px', minWidth: 160 }} aria-label="Meal type distribution chart" data-testid="summary-meal-type-bar">
                 <ResponsiveContainer width="100%" height={150}>
                   <BarChart data={["Breakfast","Lunch","Dinner"].map(cat => {
-                    const counts = foodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
+                    const counts = filteredFoodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
                     return { categoryName: cat, count: counts[cat] || 0 };
                   })}>
                     <XAxis dataKey="categoryName" hide />
                     <YAxis hide />
                     <Bar dataKey="count" fill="#3498db">
                       { ["Breakfast","Lunch","Dinner"].map(cat => {
-                        const counts = foodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
+                        const counts = filteredFoodLogs.reduce((acc, food) => { acc[food.categoryName] = (acc[food.categoryName]||0)+1; return acc; }, {} as Record<string, number>);
                         const val = counts[cat] || 0;
                         return <Cell key={cat} fill={val===0? 'rgba(52,152,219,0.15)' : '#3498db'} />
                       }) }
@@ -462,12 +573,12 @@ export default function LogsAndReports() {
 
         {/* Nutrient Logs Summary */}
         <div className="summary-section" data-testid="summary-nutrient-logs">
-          <h4>🥗 Nutrient Logs Summary</h4>
-          {nutrientLogs.length > 0 ? (
+          <h4>🥗 Nutrient Logs Summary ({getPeriodLabel()})</h4>
+          {filteredNutrientLogs.length > 0 ? (
             <>
-              <p><strong>Total Nutrient Entries:</strong> {nutrientLogs.length}</p>
-              <p><strong>Average Calories:</strong> {Math.round(nutrientLogs.reduce((sum, log) => sum + log.calories, 0) / nutrientLogs.length)}</p>
-              <p><strong>Average Protein:</strong> {Math.round(nutrientLogs.reduce((sum, log) => sum + log.protein, 0) / nutrientLogs.length)}g</p>
+              <p><strong>Total Nutrient Entries:</strong> {filteredNutrientLogs.length}</p>
+              <p><strong>Average Calories:</strong> {Math.round(filteredNutrientLogs.reduce((sum, log) => sum + log.calories, 0) / filteredNutrientLogs.length)}</p>
+              <p><strong>Average Protein:</strong> {Math.round(filteredNutrientLogs.reduce((sum, log) => sum + log.protein, 0) / filteredNutrientLogs.length)}g</p>
               <table className="summary-table">
                 <thead>
                   <tr>
@@ -478,7 +589,7 @@ export default function LogsAndReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {nutrientLogs.slice(0, 5).map((log) => (
+                  {filteredNutrientLogs.slice(0, 10).map((log) => (
                     <tr key={log.id}>
                       <td>{log.userId}</td>
                       <td>{log.calories}</td>
@@ -486,10 +597,10 @@ export default function LogsAndReports() {
                       <td>{log.updatedAt ? new Date(log.updatedAt).toLocaleDateString() : 'N/A'}</td>
                     </tr>
                   ))}
-                  {nutrientLogs.length > 5 && (
+                  {filteredNutrientLogs.length > 10 && (
                     <tr>
                       <td colSpan={4} style={{ fontStyle: 'italic', textAlign: 'center' }}>
-                        ...and {nutrientLogs.length - 5} more entries
+                        ...and {filteredNutrientLogs.length - 10} more entries
                       </td>
                     </tr>
                   )}
@@ -497,17 +608,17 @@ export default function LogsAndReports() {
               </table>
             </>
           ) : (
-            <p className="no-data-text">No nutrient logs available</p>
+            <p className="no-data-text">No nutrient logs available for {getPeriodLabel().toLowerCase()}</p>
           )}
         </div>
 
         {/* Daily Intake Summary (with user info) */}
         <div className="summary-section" data-testid="summary-daily-intake">
-          <h4>📅 Daily Intake Summary</h4>
-          {dailyIntakeLogs.length > 0 ? (
+          <h4>📅 Daily Intake Summary ({getPeriodLabel()})</h4>
+          {filteredDailyIntakeLogs.length > 0 ? (
             <>
-              <p><strong>Total Daily Records:</strong> {dailyIntakeLogs.length}</p>
-              <p><strong>Average Daily Intake:</strong> {Math.round(dailyIntakeLogs.reduce((sum, log) => sum + log.calorieIntake, 0) / dailyIntakeLogs.length)} calories</p>
+              <p><strong>Total Daily Records:</strong> {filteredDailyIntakeLogs.length}</p>
+              <p><strong>Average Daily Intake:</strong> {Math.round(filteredDailyIntakeLogs.reduce((sum, log) => sum + log.calorieIntake, 0) / filteredDailyIntakeLogs.length)} calories</p>
               <table className="summary-table">
                 <thead>
                   <tr>
@@ -517,17 +628,17 @@ export default function LogsAndReports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dailyIntakeLogs.slice(0, 5).map((log) => (
+                  {filteredDailyIntakeLogs.slice(0, 10).map((log) => (
                     <tr key={log.id}>
                       <td>{log.userId}</td>
                       <td>{log.calorieIntake}</td>
                       <td>{log.updatedAt ? new Date(log.updatedAt).toLocaleDateString() : 'N/A'}</td>
                     </tr>
                   ))}
-                  {dailyIntakeLogs.length > 5 && (
+                  {filteredDailyIntakeLogs.length > 10 && (
                     <tr>
                       <td colSpan={3} style={{ fontStyle: 'italic', textAlign: 'center' }}>
-                        ...and {dailyIntakeLogs.length - 5} more records
+                        ...and {filteredDailyIntakeLogs.length - 10} more records
                       </td>
                     </tr>
                   )}
@@ -535,7 +646,7 @@ export default function LogsAndReports() {
               </table>
             </>
           ) : (
-            <p className="no-data-text">No daily intake logs available</p>
+            <p className="no-data-text">No daily intake logs available for {getPeriodLabel().toLowerCase()}</p>
           )}
         </div>
       </div>

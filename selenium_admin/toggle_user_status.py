@@ -9,7 +9,7 @@ BASE_URL = "http://localhost:5173"
 TARGET_USER_ID = 1
 
 def toggle_user_status(user_id: int = TARGET_USER_ID):
-    driver = get_driver(headless=False)  # Set headless=False to show the browser
+    driver = get_driver(headless=True)  # Set headless=False to show the browser
     try:
         # Use shared login function
         login(

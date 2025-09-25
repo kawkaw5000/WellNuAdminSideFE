@@ -5,7 +5,7 @@ import time
 BASE_URL = "http://localhost:5173"
 
 def open_printable_summary():
-    driver = get_driver(headless=False)  # Set headless=False to show the browser
+    driver = get_driver(headless=True)  # Set headless=False to show the browser
     try:
         login(
             driver,
