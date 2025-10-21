@@ -51,8 +51,16 @@ export default function LogsAndReports() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState('');
 
-  // Time period selection state
-  const [timePeriod, setTimePeriod] = useState<'daily' | 'weekly'>('weekly');
+  // Date range selection state
+  const [startDate, setStartDate] = useState<string>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 7);
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState<string>(() => {
+    const date = new Date();
+    return date.toISOString().split('T')[0];
+  });
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -111,62 +119,71 @@ export default function LogsAndReports() {
     fetchAllData();
   }, []);
 
-  // Time period filtering functions
-  const getFilteredFoodLogs = (logs: FoodLog[], _period: 'daily' | 'weekly'): FoodLog[] => {
+  // Date range filtering functions
+  const getFilteredFoodLogs = (logs: FoodLog[]): FoodLog[] => {
     // Note: FoodLog doesn't have date fields, so return all logs for now
     // You can add date filtering if FoodLog gets timestamp fields in the future
     return logs;
   };
 
-  const getFilteredNutrientLogs = (logs: NutrientLog[], period: 'daily' | 'weekly'): NutrientLog[] => {
-    const now = new Date();
-    const cutoffDate = new Date();
-    
-    if (period === 'daily') {
-      // Start from today at 00:00 (beginning of current day)
-      cutoffDate.setHours(0, 0, 0, 0);
-    } else if (period === 'weekly') {
-      // Start from 7 days ago at 00:00
-      cutoffDate.setDate(now.getDate() - 7);
-      cutoffDate.setHours(0, 0, 0, 0);
-    }
+  const getFilteredNutrientLogs = (logs: NutrientLog[]): NutrientLog[] => {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     
     return logs.filter(log => {
       const logDate = new Date(log.updatedAt);
-      return logDate >= cutoffDate;
+      return logDate >= start && logDate <= end;
     });
   };
 
-  const getFilteredDailyIntakeLogs = (logs: DailyIntakeLog[], period: 'daily' | 'weekly'): DailyIntakeLog[] => {
-    const now = new Date();
-    const cutoffDate = new Date();
-    
-    if (period === 'daily') {
-      // Start from today at 00:00 (beginning of current day)
-      cutoffDate.setHours(0, 0, 0, 0);
-    } else if (period === 'weekly') {
-      // Start from 7 days ago at 00:00
-      cutoffDate.setDate(now.getDate() - 7);
-      cutoffDate.setHours(0, 0, 0, 0);
-    }
+  const getFilteredDailyIntakeLogs = (logs: DailyIntakeLog[]): DailyIntakeLog[] => {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
     
     return logs.filter(log => {
       const logDate = new Date(log.updatedAt);
-      return logDate >= cutoffDate;
+      return logDate >= start && logDate <= end;
     });
   };
 
-  // Get filtered data based on selected time period
-  const filteredFoodLogs = getFilteredFoodLogs(foodLogs, timePeriod);
-  const filteredNutrientLogs = getFilteredNutrientLogs(nutrientLogs, timePeriod);
-  const filteredDailyIntakeLogs = getFilteredDailyIntakeLogs(dailyIntakeLogs, timePeriod);
+  // Get filtered data based on selected date range
+  const filteredFoodLogs = getFilteredFoodLogs(foodLogs);
+  const filteredNutrientLogs = getFilteredNutrientLogs(nutrientLogs);
+  const filteredDailyIntakeLogs = getFilteredDailyIntakeLogs(dailyIntakeLogs);
 
   const getPeriodLabel = () => {
-    switch (timePeriod) {
-      case 'daily': return 'Today';
-      case 'weekly': return 'Last 7 Days';
-      default: return 'Last 7 Days';
+    const start = new Date(startDate).toLocaleDateString();
+    const end = new Date(endDate).toLocaleDateString();
+    if (startDate === endDate) {
+      return start;
     }
+    return `${start} - ${end}`;
+  };
+
+  // Quick date preset functions
+  const setToday = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setStartDate(today);
+    setEndDate(today);
+  };
+
+  const setThisWeek = () => {
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - 7);
+    setStartDate(weekStart.toISOString().split('T')[0]);
+    setEndDate(today.toISOString().split('T')[0]);
+  };
+
+  const setThisMonth = () => {
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    setStartDate(monthStart.toISOString().split('T')[0]);
+    setEndDate(today.toISOString().split('T')[0]);
   };
 
   const handlePrint = () => {
@@ -176,28 +193,101 @@ export default function LogsAndReports() {
   return (
     <div className="logs-reports-container" data-testid="logs-reports-container">
       <div className="logs-reports-content">
-        {/* Time Period Selector */}
-        <div className="logs-reports-box" data-testid="time-period-selector">
-          <h3>📅 Time Period Selection</h3>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ marginRight: '16px', fontWeight: 'bold' }}>View Data For:</label>
-            <select 
-              value={timePeriod} 
-              onChange={(e) => setTimePeriod(e.target.value as 'daily' | 'weekly')}
+        {/* Date Range Selector */}
+        <div className="logs-reports-box" data-testid="date-range-selector">
+          <h3>📅 Date Range Selection</h3>
+          
+          {/* Quick Preset Buttons */}
+          <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button 
+              onClick={setToday}
               style={{ 
-                padding: '8px 12px', 
-                fontSize: '14px', 
-                border: '1px solid #ddd', 
+                padding: '6px 12px', 
+                fontSize: '12px', 
+                border: '1px solid #007bff', 
                 borderRadius: '4px',
-                backgroundColor: '#fff',
-                color: '#333'
+                backgroundColor: '#007bff',
+                color: '#fff',
+                cursor: 'pointer'
               }}
-              data-testid="time-period-select"
             >
-              <option value="weekly" style={{ color: '#333', backgroundColor: '#fff' }}>Last 7 Days</option>
-              <option value="daily" style={{ color: '#333', backgroundColor: '#fff' }}>Today</option>
-            </select>
+              Today
+            </button>
+            <button 
+              onClick={setThisWeek}
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '12px', 
+                border: '1px solid #28a745', 
+                borderRadius: '4px',
+                backgroundColor: '#28a745',
+                color: '#fff',
+                cursor: 'pointer'
+              }}
+            >
+              Last 7 Days
+            </button>
+            <button 
+              onClick={setThisMonth}
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '12px', 
+                border: '1px solid #17a2b8', 
+                borderRadius: '4px',
+                backgroundColor: '#17a2b8',
+                color: '#fff',
+                cursor: 'pointer'
+              }}
+            >
+              This Month
+            </button>
           </div>
+
+          {/* Custom Date Inputs */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '16px', 
+            alignItems: 'center', 
+            marginBottom: '16px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontWeight: 'bold', minWidth: '70px' }}>From:</label>
+              <input 
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                style={{ 
+                  padding: '8px 12px', 
+                  fontSize: '14px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                  color: '#333'
+                }}
+                data-testid="start-date-input"
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontWeight: 'bold', minWidth: '70px' }}>To:</label>
+              <input 
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                style={{ 
+                  padding: '8px 12px', 
+                  fontSize: '14px', 
+                  border: '1px solid #ddd', 
+                  borderRadius: '4px',
+                  backgroundColor: '#fff',
+                  color: '#333'
+                }}
+                data-testid="end-date-input"
+              />
+            </div>
+          </div>
+
+          {/* Status Display */}
           <div style={{ 
             padding: '12px', 
             backgroundColor: '#f8f9fa', 
