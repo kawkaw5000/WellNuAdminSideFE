@@ -41,7 +41,7 @@ export default function Login() {
         
         window.location.href = '/dashboard'
       } else {
-        setError('Invalid credentials. Use admin/123 or check if backend is running.')
+  setError('Invalid login credentials.')
       }
     } finally {
       setLoading(false)

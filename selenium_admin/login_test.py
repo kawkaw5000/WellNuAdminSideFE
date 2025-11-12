@@ -1,8 +1,8 @@
 from base_driver import get_driver, login
 
 BASE_URL = "http://localhost:5173/"  # Adjust if needed
-USERNAME = "admin"
-PASSWORD = "123"
+USERNAME = "1+1=--"
+PASSWORD = "foo"
 
 if __name__ == "__main__":
     try:
